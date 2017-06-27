@@ -63,36 +63,6 @@ class EchoWithData(base_tests.SimpleProtocol):
         self.assertEqual(request.data, response.data,
                          'response data does not match request')
 
-@group('smoke')
-class PacketIn(base_tests.SimpleDataPlane):
-    """
-    Test packet in function
-
-    Send a packet to each dataplane port and verify that a packet
-    in message is received from the controller for each
-    """
-    def runTest(self):
-        # Construct packet to send to dataplane
-        # Send packet to dataplane, once to each port
-        # Poll controller with expect message type packet in
-
-        delete_all_flows(self.controller)
-        do_barrier(self.controller)
-
-        vid = test_param_get('vid', default=TEST_VID_DEFAULT)
-
-        for of_port in config["port_map"].keys():
-            for pkt, pt in [
-               (simple_tcp_packet(), "simple TCP packet"),
-               (simple_tcp_packet(dl_vlan_enable=True,vlan_vid=vid,pktlen=108), 
-                "simple tagged TCP packet"),
-               (simple_eth_packet(), "simple Ethernet packet"),
-               (simple_eth_packet(pktlen=40), "tiny Ethernet packet")]:
-
-               logging.info("PKT IN test with %s, port %s" % (pt, of_port))
-               self.dataplane.send(of_port, str(pkt))
-               verify_packet_in(self, str(pkt), of_port, ofp.OFPR_NO_MATCH)
-
 class PacketInBroadcastCheck(base_tests.SimpleDataPlane):
     """
     Check if bcast pkts leak when no flows are present
@@ -119,78 +89,6 @@ class PacketInBroadcastCheck(base_tests.SimpleDataPlane):
         (of_port, pkt_in, pkt_time) = self.dataplane.poll(exp_pkt=pkt)
         self.assertTrue(pkt_in is None,
                         'BCast packet received on port ' + str(of_port))
-
-@group('smoke')
-class PacketOut(base_tests.SimpleDataPlane):
-    """
-    Test packet out function
-
-    Send packet out message to controller for each dataplane port and
-    verify the packet appears on the appropriate dataplane port
-    """
-    def runTest(self):
-        # Construct packet to send to dataplane
-        # Send packet to dataplane
-        # Poll controller with expect message type packet in
-
-        delete_all_flows(self.controller)
-
-        # These will get put into function
-        of_ports = config["port_map"].keys()
-        of_ports.sort()
-        for dp_port in of_ports:
-            for outpkt, opt in [
-               (simple_tcp_packet(), "simple TCP packet"),
-               (simple_eth_packet(), "simple Ethernet packet"),
-               (simple_eth_packet(pktlen=40), "tiny Ethernet packet")]:
-
-               logging.info("PKT OUT test with %s, port %s" % (opt, dp_port))
-               msg = ofp.message.packet_out(in_port=ofp.OFPP_NONE,
-                                        data=str(outpkt),
-                                        actions=[ofp.action.output(port=dp_port)],
-                                        buffer_id=0xffffffff)
-
-               logging.info("PacketOut to: " + str(dp_port))
-               self.controller.message_send(msg)
-
-               verify_packets(self, outpkt, [dp_port])
-
-class PacketOutMC(base_tests.SimpleDataPlane):
-    """
-    Test packet out to multiple output ports
-
-    Send packet out message to controller for 1 to N dataplane ports and
-    verify the packet appears on the appropriate ports
-    """
-    def runTest(self):
-        # Construct packet to send to dataplane
-        # Send packet to dataplane
-        # Poll controller with expect message type packet in
-
-        delete_all_flows(self.controller)
-
-        # These will get put into function
-        of_ports = config["port_map"].keys()
-        random.shuffle(of_ports)
-        for num_ports in range(1,len(of_ports)+1):
-            for outpkt, opt in [
-               (simple_tcp_packet(), "simple TCP packet"),
-               (simple_eth_packet(), "simple Ethernet packet"),
-               (simple_eth_packet(pktlen=40), "tiny Ethernet packet")]:
-
-               dp_ports = of_ports[0:num_ports]
-               logging.info("PKT OUT test with " + opt +
-                                 ", ports " + str(dp_ports))
-               actions = [ofp.action.output(port=port) for port in dp_ports]
-               msg = ofp.message.packet_out(in_port=ofp.OFPP_NONE,
-                                        data=str(outpkt),
-                                        actions=actions,
-                                        buffer_id=0xffffffff)
-
-               logging.info("PacketOut to: " + str(dp_ports))
-               self.controller.message_send(msg)
-
-               verify_packets(self, outpkt, dp_ports)
 
 class FlowStatsGet(base_tests.SimpleProtocol):
     """
