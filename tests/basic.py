@@ -63,6 +63,7 @@ class EchoWithData(base_tests.SimpleProtocol):
         self.assertEqual(request.data, response.data,
                          'response data does not match request')
 
+
 class PacketInBroadcastCheck(base_tests.SimpleDataPlane):
     """
     Check if bcast pkts leak when no flows are present
@@ -89,6 +90,7 @@ class PacketInBroadcastCheck(base_tests.SimpleDataPlane):
         (of_port, pkt_in, pkt_time) = self.dataplane.poll(exp_pkt=pkt)
         self.assertTrue(pkt_in is None,
                         'BCast packet received on port ' + str(of_port))
+
 
 class FlowStatsGet(base_tests.SimpleProtocol):
     """
