@@ -266,43 +266,6 @@ class VlanId(base_tests.SimpleDataPlane):
         #Verify PacketIn event gets triggered
         #verify_packet_in(self, str(pkt2), of_ports[0], ofp.OFPR_NO_MATCH)
 
-class VlanPCP(base_tests.SimpleDataPlane):
-
-    """"Verify match on single Header Field Field -- Vlan Priority"""
-
-    def runTest(self):
-
-        logging.info("Running VlanPCP1 test")
-
-        of_ports = config["port_map"].keys()
-        of_ports.sort()
-        self.assertTrue(len(of_ports) > 1, "Not enough ports for test")
-    
-        #Clear Switch State
-        delete_all_flows(self.controller)
-
-        in_port = of_ports[0]
-        egress_port = of_ports[1]
-    
-        logging.info("Inserting a flow with match on VLAN Priority ")
-        logging.info("Sending matching and non-matching tagged packets")
-        logging.info("Verifying matching packet implements the action specified in the flow")
-
-        #Create a flow matching on VLAN Priority
-        (pkt,match) = match_vlan_pcp(self,of_ports)
-
-        #Send tagged Packet matching the flow 
-        self.dataplane.send(of_ports[0], str(pkt))
-
-        #Verify packet implements the action specified in the flow
-        verify_packets(self, pkt, [egress_port])
-        
-        #Send tagged packet with same vlan_id but different vlan priority
-        #pkt2 = simple_tcp_packet(dl_vlan_enable=True,vlan_vid=1,vlan_pcp=20);
-        #self.dataplane.send(of_ports[0], str(pkt2))
-
-        #Verify Packet_In event gets triggered
-        #verify_packet_in(self, str(pkt2), of_ports[0], ofp.OFPR_NO_MATCH)
        
 class MultipleHeaderFieldL2(base_tests.SimpleDataPlane):
     
@@ -564,75 +527,6 @@ class UdpDstPort(base_tests.SimpleDataPlane):
         #self.dataplane.send(of_ports[0], str(pkt2))
         #verify_packet_in(self, str(pkt2), of_ports[0], ofp.OFPR_NO_MATCH)
 
-class ICMPType(base_tests.SimpleDataPlane):
-    
-    """Verify match on Single header field -- ICMP type,  """
-
-    def runTest(self):
-
-        logging.info("Running ICMP type test")
-
-        of_ports = config["port_map"].keys()
-        of_ports.sort()
-        self.assertTrue(len(of_ports) > 1, "Not enough ports for test")
-    
-        #Clear Switch State
-        delete_all_flows(self.controller)
-
-        in_port = of_ports[0]
-        egress_port = of_ports[1]
-    
-        logging.info("Inserting a flow with match on ICMP type")
-        logging.info("Sending matching and non-matching ICMP packets")
-        logging.info("Verifying matching packets implements the action specified in the flow")
-
-        (pkt,match) = match_icmp_type(self,of_ports)   
-
-        #Sending packet matching the tcp_sport, verify it implements the action
-        self.dataplane.send(of_ports[0], str(pkt))
-
-        #Verify packet implements the action specified in the flow
-        verify_packets(self, pkt, [egress_port])
-
-        #Sending non matching packet , verify Packetin event gets triggered.
-        #pkt2 = simple_icmp_packet(icmp_type=10);
-        #self.dataplane.send(of_ports[0], str(pkt2))
-        #verify_packet_in(self, str(pkt2), of_ports[0], ofp.OFPR_NO_MATCH)
-
-class ICMPCode(base_tests.SimpleDataPlane):
-    
-    """Verify match on Single header field -- ICMP code,  """
-
-    def runTest(self):
-
-        logging.info("Running ICMP code test")
-
-        of_ports = config["port_map"].keys()
-        of_ports.sort()
-        self.assertTrue(len(of_ports) > 1, "Not enough ports for test")
-    
-        #Clear Switch State
-        delete_all_flows(self.controller)
-
-        in_port = of_ports[0]
-        egress_port = of_ports[1]
-    
-        logging.info("Inserting a flow with match on ICMP type")
-        logging.info("Sending matching and non-matching ICMP packets")
-        logging.info("Verifying matching packets implements the action specified in the flow")
-
-        (pkt,match) = match_icmp_code(self,of_ports)   
-
-        #Sending packet matching the tcp_dport, verify it implements the action
-        self.dataplane.send(of_ports[0], str(pkt))
-
-        #Verify packet implements the action specified in the flow
-        verify_packets(self, pkt, [egress_port])
-
-        #Sending non matching packet , verify Packetin event gets triggered.
-        #pkt2 = simple_icmp_packet(icmp_code=10);
-        #self.dataplane.send(of_ports[0], str(pkt2))
-        #verify_packet_in(self, str(pkt2), of_ports[0], ofp.OFPR_NO_MATCH)
 
 class ArpOpcode(base_tests.SimpleDataPlane):
 
@@ -743,42 +637,6 @@ class ArpTargetIP(base_tests.SimpleDataPlane):
         #verify_packet_in(self, str(pkt2), of_ports[0], ofp.OFPR_NO_MATCH)
 
 
-class ExactMatch(base_tests.SimpleDataPlane):
-    
-    """Verify match on Single header field -- Exact Match  """
-    
-    def runTest(self):
-
-        logging.info("Running Tcp Exact Match test")
-
-        of_ports = config["port_map"].keys()
-        of_ports.sort()
-        self.assertTrue(len(of_ports) > 1, "Not enough ports for test")
-    
-        #Clear Switch State
-        delete_all_flows(self.controller)
-
-        in_port = of_ports[0]
-        egress_port = of_ports[1]
-        
-        logging.info("Inserting a flow with match for Exact Match ")
-        logging.info("Sending matching and non-matching packets")
-        logging.info("Verifying matching packets implements the action specified in the flow")
-
-        (pkt,match) = exact_match(self,of_ports)   
-
-        #Sending packet matching all the fields of a tcp_packet, verify it implements the action
-        self.dataplane.send(of_ports[0], str(pkt))
-
-        #Verify packet implements the action specified in the flow
-        verify_packets(self, pkt, [egress_port])
-
-        #Sending non matching packet , verify Packetin event gets triggered.
-        #pkt2 = simple_tcp_packet(tcp_sport=540);
-        #self.dataplane.send(of_ports[0], str(pkt2))
-        #verify_packet_in(self, str(pkt2), of_ports[0], ofp.OFPR_NO_MATCH)
-
-
 class MultipleHeaderFieldL4(base_tests.SimpleDataPlane):
     
     """Verify match on multiple header field -- Tcp Source Port, Tcp Destination Port  """
@@ -818,71 +676,6 @@ class MultipleHeaderFieldL4(base_tests.SimpleDataPlane):
         #pkt2 = simple_tcp_packet(tcp_sport=100,tcp_dport=112);
         #self.dataplane.send(of_ports[0], str(pkt2))
         #verify_packet_in(self, str(pkt2), of_ports[0], ofp.OFPR_NO_MATCH)
-
-
-class ExactMatchPrio(base_tests.SimpleDataPlane):
-    
-    """Verify that Exact Match has highest priority """
-    
-    def runTest(self):
-
-        logging.info("Running Exact Match High Priority test")
-
-        of_ports = config["port_map"].keys()
-        of_ports.sort()
-        self.assertTrue(len(of_ports) > 1, "Not enough ports for test")
-    
-        #Clear Switch State
-        delete_all_flows(self.controller)
-
-        in_port = of_ports[0]
-        egress_port = of_ports[2]
-    
-        logging.info("Inserting a flow with Exact Match (low priority)")
-        logging.info("Inserting an overlapping wildcarded flow (higher priority)")
-        logging.info("Sending packets matching both the flows ")
-        logging.info("Verifying matching packets implements the action specified in the exact match flow")
-
-        #Insert two Overlapping Flows : Exact Match and Wildcard All.
-        (pkt,match) = exact_match_with_prio(self,of_ports,priority=10) 
-        (pkt2,match2) = wildcard_all(self,of_ports,priority=20);  
-        
-        #Sending packet matching both the flows , 
-        self.dataplane.send(of_ports[0], str(pkt2))
-
-        #verify it implements the action specified in Exact Match Flow
-        verify_packets(self, pkt, [egress_port])
-
-
-class WildcardMatchPrio(base_tests.SimpleDataPlane):
-    
-    """Verify that Wildcard Match with highest priority overrides the low priority WildcardMatch """
-    
-    def runTest(self):
-
-        logging.info("Running Wildcard Match High Priority test")
-
-        of_ports = config["port_map"].keys()
-        of_ports.sort()
-        self.assertTrue(len(of_ports) > 1, "Not enough ports for test")
-    
-        #Clear Switch State
-        delete_all_flows(self.controller)
-
-        in_port = of_ports[0]
-        egress_port = of_ports[1]
-    
-        logging.info("Inserting two wildcarded flows with priorities ")
-        logging.info("Sending packets matching the flows")
-        logging.info("Verifying matching packets implements the action specified in the flow with higher priority")
-
-        (pkt,match) = wildcard_all(self,of_ports,priority=20) 
-        (pkt1,match1) =  wildcard_all_except_ingress1(self,of_ports,priority=10)  
-
-        #Sending packet matching both the flows , verify it implements the action specified by Higher Priority flow
-        self.dataplane.send(of_ports[0], str(pkt1))
-        verify_packets(self, pkt, [egress_port])
-
 
 
 
