@@ -237,7 +237,9 @@ class ModifyVlanTag(base_tests.SimpleDataPlane):
         vid_act.vlan_vid = new_vid
         
         #Insert flow with action -- set vid , Send packet matching the flow.Verify recieved packet is expected packet.
+        wildcards = ofp.OFPFW_ALL ^ ofp.OFPFW_IN_PORT ^ ofp.OFPFW_DL_SRC ^ ofp.OFPFW_DL_DST ^ ofp.OFPFW_DL_TYPE ^ ofp.OFPFW_NW_SRC_ALL ^ ofp.OFPFW_NW_DST_ALL
         flow_match_test(self, config["port_map"], pkt=pkt, exp_pkt=exp_pkt,
+                        wildcards=wildcards,
                         action_list=[vid_act])
         
 
